@@ -1,0 +1,48 @@
+<!-- polls/create.html -->
+
+{% extends "polls/index.html" %}
+
+{% block content %}
+<h1>Create a new question</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="question_text">Question:</label>
+    <input type="text" name="question_text" required>
+
+    <label for="choice_text">Choices:</label>
+    <ul id="choice_list">
+        <li>
+            <input type="text" name="choice_text" required>
+        </li>
+        <li>
+            <input type="text" name="choice_text">
+        </li>
+        <li>
+            <input type="text" name="choice_text">
+        </li>
+        <li>
+            <input type="text" name="choice_text">
+        </li>
+        <li>
+            <input type="text" name="choice_text">
+        </li>
+    </ul>
+
+    <button type="submit">Create Question</button>
+</form>
+
+<script>
+    // Add a new choice input field to the form when the user clicks the "Add choice" button
+    document.querySelector("#add_choice").addEventListener("click", function (event) {
+        event.preventDefault();
+
+        var choiceList = document.querySelector("#choice_list");
+        var newChoiceInput = document.createElement("input");
+        newChoiceInput.setAttribute("type", "text");
+        newChoiceInput.setAttribute("name", "choice_text");
+        choiceList.appendChild(document.createElement("li")).appendChild(newChoiceInput);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+POST
+MULTIPART
+
+http://localhost:8000/polls/create/
+
+question_text = hey?
+choice_text = '{hello,heyo}'
