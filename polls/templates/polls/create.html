@@ -1,48 +1,43 @@
-<!-- polls/create.html -->
+{% extends "polls/base.html" %}
 
-{% extends "polls/index.html" %}
+{% block title %}Create Poll{% endblock %}
 
 {% block content %}
-<h1>Create a new question</h1>
-
-<form method="post">
+<h1>Create Poll</h1>
+<form action="{% url 'polls:create' %}" method="post">
     {% csrf_token %}
-
     <label for="question_text">Question:</label>
-    <input type="text" name="question_text" required>
-
+    <input type="text" name="question_text" id="question_text" required>
+    <br>
     <label for="choice_text">Choices:</label>
-    <ul id="choice_list">
+    <ul id="choices">
         <li>
             <input type="text" name="choice_text" required>
-        </li>
-        <li>
-            <input type="text" name="choice_text">
-        </li>
-        <li>
-            <input type="text" name="choice_text">
-        </li>
-        <li>
-            <input type="text" name="choice_text">
-        </li>
-        <li>
-            <input type="text" name="choice_text">
+            <button type="button" onclick="addChoice()">Add Choice</button>
         </li>
     </ul>
-
-    <button type="submit">Create Question</button>
+    <br>
+    <label for="tags">Tags:</label>
+    <input type="text" name="tags" id="tags">
+    <br>
+    <button type="submit">Create Poll</button>
 </form>
-
 <script>
-    // Add a new choice input field to the form when the user clicks the "Add choice" button
-    document.querySelector("#add_choice").addEventListener("click", function (event) {
-        event.preventDefault();
-
-        var choiceList = document.querySelector("#choice_list");
-        var newChoiceInput = document.createElement("input");
-        newChoiceInput.setAttribute("type", "text");
-        newChoiceInput.setAttribute("name", "choice_text");
-        choiceList.appendChild(document.createElement("li")).appendChild(newChoiceInput);
-    });
+    function addChoice() {
+        var li = document.createElement("li");
+        var input = document.createElement("input");
+        input.type = "text";
+        input.name = "choice_text";
+        input.required = true;
+        li.appendChild(input);
+        var button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Remove Choice";
+        button.onclick = function () {
+            this.parentNode.remove();
+        };
+        li.appendChild(button);
+        document.getElementById("choices").appendChild(li);
+    }
 </script>
 {% endblock %}

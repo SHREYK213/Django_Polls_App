@@ -1,0 +1,11 @@
+{% extends 'polls/base.html' %}
+
+{% block content %}
+{% if tags %}
+<ul>
+    {% for tag in tags %}
+    <li><a href="{% url 'polls:index' %}?tags={{ tag.tag_name }}">{{ tag.tag_name }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

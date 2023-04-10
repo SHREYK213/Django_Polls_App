@@ -1,9 +1,30 @@
-{% if latest_question_list %}
+{% extends "polls/base.html" %}
+
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+<h1>Latest Polls</h1>
+<form action="{% url 'polls:index' %}" method="get">
+    <label for="tags">Filter by tags:</label>
+    <select name="tags" id="tags" multiple>
+        {% for tag in tags %}
+        <option value="{{ tag.tag_name }}">{{ tag.tag_name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+</form>
 <ul>
     {% for question in latest_question_list %}
-    <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+    <li>
+        <a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a>
+        <br>
+        Tags:
+        {% for tag in question.tag.all %}
+        {{ tag.tag_name }}
+        {% endfor %}
+    </li>
+    {% empty %}
+    <li>No polls available.</li>
     {% endfor %}
 </ul>
-{% else %}
-<p>No polls are available.</p>
-{% endif %}
+{% endblock %}

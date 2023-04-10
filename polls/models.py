@@ -17,3 +17,12 @@ class Choice(models.Model):
     votes = models.IntegerField(default=0)
     def __str__(self):
         return self.choice_text
+    
+
+class Tag(models.Model):
+    tag_name = models.CharField(max_length=50)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    
+    def __str__(self):
+        return self.tag_name

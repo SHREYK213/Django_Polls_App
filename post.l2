@@ -1,0 +1,10 @@
+POST
+
+
+http://localhost:8000/polls/polls/
+
+{
+"question_text": "lol?",
+"choice_text": ["android","ios"],
+"tags":["phone","tech"],
+}
