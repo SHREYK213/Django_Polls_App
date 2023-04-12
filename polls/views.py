@@ -128,7 +128,10 @@ class IndexView(generic.ListView):
         context['tags'] = tags
         return context 
  
-
+def get_tag(request):
+    tags = Tag.objects.all()
+    tag_list = [{'id': tag.id, 'tag_name': tag.tag_name} for tag in tags]
+    return JsonResponse({'tags': tag_list})
 
 class TagListView(generic.ListView):
     template_name = "polls/tags_list.html"

@@ -1,30 +1,69 @@
-{% extends "polls/base.html" %}
+<!DOCTYPE html>
 
-{% block title %}Polls{% endblock %}
+<html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-{% block content %}
-<h1>Latest Polls</h1>
-<form action="{% url 'polls:index' %}" method="get">
-    <label for="tags">Filter by tags:</label>
-    <select name="tags" id="tags" multiple>
-        {% for tag in tags %}
-        <option value="{{ tag.tag_name }}">{{ tag.tag_name }}</option>
-        {% endfor %}
-    </select>
+<head>
+
+</head>
+<h1>All polls</h1>
+<!-- <form id="filter-form" action="{% url 'polls:index' %}" method="get">
+    <label>Filter by tags:</label>
+    {% for tag in tags %}
+    <div>
+        <input type="checkbox" name="tags" value="{{ tag.tag_name }}" id="tag-{{ tag.id }}">
+        <label for="tag-{{ tag.id }}">{{ tag.tag_name }}</label>
+    </div>
+    {% endfor %}
     <button type="submit">Filter</button>
 </form>
 <ul>
     {% for question in latest_question_list %}
-    <li>
+    <li class="poll" data-tags="{% for tag in question.tag.all %}{{ tag.tag_name }} {% endfor %}">
         <a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a>
-        <br>
-        Tags:
-        {% for tag in question.tag.all %}
-        {{ tag.tag_name }}
-        {% endfor %}
     </li>
     {% empty %}
     <li>No polls available.</li>
     {% endfor %}
-</ul>
-{% endblock %}
+</ul> -->
+
+<body>
+
+    <ul id="tag-list"></ul>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'polls/',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    var tags = response.tags;
+                    for (var i = 0; i < tags.length; i++) {
+                        var tag = tags[i];
+                        $('#tag-list').append('<li>' + tag.tag_name + '</li>');
+                    }
+                }
+            });
+        });
+
+
+    // $(document).ready(function () {
+    //     $('#filter-form').on('submit', function (event) {
+
+    //         var tags = $('input[name="tags"]:checked').map(function () {
+    //             return $(this).val();
+    //         }).get();
+    //         $('.poll').each(function () {
+    //             var pollTags = $(this).data('tags').trim().split(' ');
+    //             if (tags.length == 0 || $(tags).not(pollTags).length == 0) {
+    //                 $(this).show();
+    //             } else {
+    //                 $(this).hide();
+    //             }
+    //         });
+    //     });
+    // });
+    </script>
+</body>
+
+</html>

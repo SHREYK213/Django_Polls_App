@@ -4,7 +4,8 @@ POST
 http://localhost:8000/polls/polls/
 
 {
-"question_text": "lol?",
-"choice_text": ["android","ios"],
-"tags":["phone","tech"],
+"question_text": "Hobby",
+"choice_text": ["read","gaming"],
+"tags":["helth","life"],
 }
+
