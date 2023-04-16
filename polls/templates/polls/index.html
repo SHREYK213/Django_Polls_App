@@ -1,68 +1,82 @@
 <!DOCTYPE html>
-
 <html>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <head>
-
+    <title>Polling App</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<h1>All polls</h1>
-<!-- <form id="filter-form" action="{% url 'polls:index' %}" method="get">
-    <label>Filter by tags:</label>
-    {% for tag in tags %}
-    <div>
-        <input type="checkbox" name="tags" value="{{ tag.tag_name }}" id="tag-{{ tag.id }}">
-        <label for="tag-{{ tag.id }}">{{ tag.tag_name }}</label>
-    </div>
-    {% endfor %}
-    <button type="submit">Filter</button>
-</form>
-<ul>
-    {% for question in latest_question_list %}
-    <li class="poll" data-tags="{% for tag in question.tag.all %}{{ tag.tag_name }} {% endfor %}">
-        <a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a>
-    </li>
-    {% empty %}
-    <li>No polls available.</li>
-    {% endfor %}
-</ul> -->
 
 <body>
-
+    <h1>All Polls</h1>
     <ul id="tag-list"></ul>
+    <button id="filter-btn">Filter</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Question Text</th>
+                <th>Total Votes</th>
+                <th>Tags</th>
+            </tr>
+        </thead>
+        <tbody id="question-table-body"></tbody>
+    </table>
+    <div id="question-table-container"></div>
     <script>
         $(document).ready(function () {
+
+            function updateQuestionList(tag_names) {
+                var tags = tag_names.join(',')
+                $.ajax({
+                    url: 'filterbytag/',
+                    type: 'GET',
+                    data: { tags: tags },
+                    dataType: 'json',
+                    success: function (response) {
+                        var questions = response.data;
+                        console.log(questions)
+                        $('#question-table-body').empty();
+                        for (var i = 0; i < questions.length; i++) {
+                            var question = questions[i];
+                            $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td>' + question.question_text + '</td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+
+
             $.ajax({
-                url: 'polls/',
+                url: 'tags/',
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
                     var tags = response.tags;
+                    console.log(tags)
                     for (var i = 0; i < tags.length; i++) {
                         var tag = tags[i];
-                        $('#tag-list').append('<li>' + tag.tag_name + '</li>');
+                        $('#tag-list').append('<li><input type="checkbox" id="tag-' + tag.tag_name + '" value="' + tag.tag_name + '">' + tag.tag_name + '</li>');
                     }
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
                 }
             });
+
+            $('#filter-btn').click(function () {
+                var tag_names = [];
+                console.log(tag_names)
+                $('input[type="checkbox"]:checked').each(function () {
+                    tag_names.push($(this).val());
+                });
+                console.log(tag_names)
+                updateQuestionList(tag_names);
+            });
+
+
         });
-
-
-    // $(document).ready(function () {
-    //     $('#filter-form').on('submit', function (event) {
-
-    //         var tags = $('input[name="tags"]:checked').map(function () {
-    //             return $(this).val();
-    //         }).get();
-    //         $('.poll').each(function () {
-    //             var pollTags = $(this).data('tags').trim().split(' ');
-    //             if (tags.length == 0 || $(tags).not(pollTags).length == 0) {
-    //                 $(this).show();
-    //             } else {
-    //                 $(this).hide();
-    //             }
-    //         });
-    //     });
-    // });
     </script>
 </body>
 
