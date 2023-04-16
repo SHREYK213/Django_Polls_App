@@ -6,7 +6,9 @@ from .models import Choice, Question,Tag
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.core import serializers
+from django.db.models import Sum
 import json
+from django.db.models import Count
 
 
 class IndexView(generic.ListView):
@@ -14,8 +16,9 @@ class IndexView(generic.ListView):
     context_object_name = "latest_question_list"
 
     def get_queryset(self):
-         
-        return Question.objects.order_by("-pub_date")[:7]
+        return Question.objects.order_by("-pub_date")[:5]
+
+
 
 class DetailView(generic.DetailView):
     model = Question
@@ -100,38 +103,31 @@ def edit_poll(request, question_id):
         return JsonResponse({'error':'Invalid request data'})
     return JsonResponse({'error':'Invalid request method'})
 
-    
 
-@csrf_exempt 
-def delete_poll(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    if request.method == 'DELETE':
-        question.delete()
-        return JsonResponse({'success': True})
-    return JsonResponse({'error':'Invalid request '}) 
+# class IndexView(generic.ListView):
+#     template_name = "polls/index.html"
+#     context_object_name = "latest_question_list"
 
+#     def get_queryset(self):
+#         tags = self.request.GET.getlist('tags')
+#         if tags:
+#             return Question.objects.filter(tag__tag_name__in=tags).distinct().order_by('-pub_date')[:7]
+#         else: 
+#             return Question.objects.order_by('-pub_date')[:7]
 
-class IndexView(generic.ListView):
-    template_name = "polls/index.html"
-    context_object_name = "latest_question_list"
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         tags = Tag.objects.all()
+#         context['tags'] = tags
+#         return context
 
-    def get_queryset(self):
-        tags = self.request.GET.getlist('tags')
-        if tags:
-            return Question.objects.filter(tag__tag_name__in=tags).distinct().order_by('-pub_date')[:7]
-        else: 
-            return Question.objects.order_by('-pub_date')[:7]
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tags = Tag.objects.all()
-        context['tags'] = tags
-        return context 
  
 def get_tag(request):
     tags = Tag.objects.all()
     tag_list = [{'id': tag.id, 'tag_name': tag.tag_name} for tag in tags]
     return JsonResponse({'tags': tag_list})
+
+
 
 class TagListView(generic.ListView):
     template_name = "polls/tags_list.html"
@@ -140,5 +136,76 @@ class TagListView(generic.ListView):
     def get_queryset(self):
         return Tag.objects.all()
 
+
+
+def get_questions(request):
+    # tag_names = request.GET.getlist('tags')
+    tag_names = request.GET.get('tags', '')
+    if ',' in tag_names:
+        tag_names = tag_names.split(',')
+    else:
+        tag_names = [tag_names]
+
+
+    print(tag_names)
+    # tag_names = ['Life','HEalth']
+
+
+    tags = Tag.objects.filter(tag_name__in=tag_names).select_related('question')
+    question_ids = [] 
+    questionIdTagsMap={} 
+
+
+
+    for tag in tags:
+
+
+        print(tag.tag_name)      
+        # if there is already an object of this question id then apend this tag name to that value
+        # else create new object with this question is and tag name as value
+        # if tag.question.id in questionIdTagsMap.keys():
+        #     print('if:',tag.question.id,tag.tag_name)
+        #     questionIdTagsMap[tag.question.id].append(tag.tag_name)
+        # else:
+        #     questionIdTagsMap[tag.question.id]= [tag.tag_name]
+        #     print('else:',tag.question.id,tag.tag_name)
+
+        question_ids.append(tag.question.id)
+    
+    
+    print(questionIdTagsMap)
+
+
+    question_ids = list(set(question_ids))
+    print("qid",question_ids)
+
+    for each_id in question_ids:
+        tags = Tag.objects.filter(question_id=each_id).values_list('tag_name', flat=True)
+        tag_list = list(tags)
+        print('taglist:',tag_list)
+        questionIdTagsMap[each_id] = tag_list
+
+    print(questionIdTagsMap)
+
+    questions = Question.objects.filter(id__in=question_ids)
+    print(questions)
+
+
+    data = []
+    print(questionIdTagsMap)
+    for question in questions:
+        print('ID:',question.id)
+        
+        # {1: ['Tech'], 3: ['Life']}
+
+        qtag=questionIdTagsMap.get(question.id)
+        print('qtag',qtag)
+        data.append({
+
+            'question_text': question.question_text,
+            'tag_name': qtag
+        })
+    print(data)
+    return JsonResponse({'data': data})
 
 
