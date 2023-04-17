@@ -4,24 +4,130 @@
 <head>
     <title>Polling App</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #header {
+            background-color: rgb(219, 218, 216);
+            padding: 20px;
+            width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: medium;
+        }
+
+        #body {
+            font-size: 15px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid black;
+
+            width: 100%;
+            margin-left: 30px;
+        }
+
+
+        th {
+            border: 1px solid black;
+            background-color: #808080;
+        }
+
+        td {
+            border: 1px solid black;
+        }
+
+        /* #form {
+            padding-right: 70px;
+            width: fit-content;
+            background-color: rgb(219, 218, 216);
+            margin-left: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        } */
+
+
+        #poll-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #tag-filter-container {
+            border: 1px solid #ccc;
+            background-color: rgb(219, 218, 216);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            display: inline-block;
+            align-items: center;
+        }
+
+        #tag-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #tag-list li {
+            margin: 5px 0;
+            margin-bottom: 15px;
+        }
+
+        #tag-list li input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+
+
+
+        #button {
+            color: white;
+            background-color: cyan;
+            margin-left: 30px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            width: 178px;
+            height: 40px;
+            border-color: transparent;
+            cursor: pointer;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+            gap: 1px;
+            grid-auto-flow: column;
+        }
+    </style>
 </head>
 
-<body>
-    <h1>All Polls</h1>
-    <ul id="tag-list"></ul>
-    <button id="filter-btn">Filter</button>
-    <table>
-        <thead>
-            <tr>
-                <th>Number</th>
-                <th>Question Text</th>
-                <th>Total Votes</th>
-                <th>Tags</th>
-            </tr>
-        </thead>
-        <tbody id="question-table-body"></tbody>
-    </table>
-    <div id="question-table-container"></div>
+<body id="body">
+    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 600px;">
+
+
+        <header id="header">
+            <h2 style="margin-left: 40px;">FlyWeight Polls</h2>
+        </header>
+        <!-- <div style="display: flex; align-items: center; justify-content:space-evenly; width:1000px"> -->
+        <div>
+            <div id="wrapper">
+                <div id="poll-container">
+                    <button id="button">Create Poll</button>
+                </div>
+                <div id="tag-filter-container" style="margin-left: 30px; width: 160px;height: 200px;">
+                    <ul id="tag-list"></ul>
+                    <button id="filter-btn">Filter</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Question Text</th>
+                            <th>Total Votes</th>
+                            <th>Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody id="question-table-body"></tbody>
+                </table>
+                <div id="question-table-container"></div>
+            </div>
+        </div>
+    </div>
     <script>
         $(document).ready(function () {
 
@@ -54,11 +160,15 @@
                 dataType: 'json',
                 success: function (response) {
                     var tags = response.tags;
-                    console.log(tags)
+                    var uniqueTags = new Set();  // Create a Set to store unique tags
                     for (var i = 0; i < tags.length; i++) {
                         var tag = tags[i];
-                        $('#tag-list').append('<li><input type="checkbox" id="tag-' + tag.tag_name + '" value="' + tag.tag_name + '">' + tag.tag_name + '</li>');
+                        uniqueTags.add(tag.tag_name);  // Add tag to the Set
                     }
+                    // Loop through the unique tags and display them
+                    uniqueTags.forEach(function (tag) {
+                        $('#tag-list').append('<li><input type="checkbox" id="tag-' + tag + '" value="' + tag + '">' + tag + '</li>');
+                    });
                 },
                 error: function (xhr, status, error) {
                     console.error(error);
@@ -76,6 +186,23 @@
             });
 
 
+        });
+        $.ajax({
+            url: 'alldata',
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                var questions = response.data;
+                console.log(questions)
+                $('#question-table-body').empty();
+                for (var i = 0; i < questions.length; i++) {
+                    var question = questions[i];
+                    $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td>' + question.question_text + '</td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
         });
     </script>
 </body>

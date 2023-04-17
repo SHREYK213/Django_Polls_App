@@ -139,73 +139,85 @@ class TagListView(generic.ListView):
 
 
 def get_questions(request):
-    # tag_names = request.GET.getlist('tags')
     tag_names = request.GET.get('tags', '')
-    if ',' in tag_names:
-        tag_names = tag_names.split(',')
-    else:
-        tag_names = [tag_names]
-
-
-    print(tag_names)
-    # tag_names = ['Life','HEalth']
-
-
-    tags = Tag.objects.filter(tag_name__in=tag_names).select_related('question')
-    question_ids = [] 
-    questionIdTagsMap={} 
-
-
-
-    for tag in tags:
-
-
-        print(tag.tag_name)      
-        # if there is already an object of this question id then apend this tag name to that value
-        # else create new object with this question is and tag name as value
-        # if tag.question.id in questionIdTagsMap.keys():
-        #     print('if:',tag.question.id,tag.tag_name)
-        #     questionIdTagsMap[tag.question.id].append(tag.tag_name)
-        # else:
-        #     questionIdTagsMap[tag.question.id]= [tag.tag_name]
-        #     print('else:',tag.question.id,tag.tag_name)
-
-        question_ids.append(tag.question.id)
-    
-    
-    print(questionIdTagsMap)
-
-
-    question_ids = list(set(question_ids))
-    print("qid",question_ids)
-
-    for each_id in question_ids:
-        tags = Tag.objects.filter(question_id=each_id).values_list('tag_name', flat=True)
-        tag_list = list(tags)
-        print('taglist:',tag_list)
-        questionIdTagsMap[each_id] = tag_list
-
-    print(questionIdTagsMap)
-
-    questions = Question.objects.filter(id__in=question_ids)
-    print(questions)
-
-
-    data = []
-    print(questionIdTagsMap)
-    for question in questions:
-        print('ID:',question.id)
+    if tag_names:
+        if ',' in tag_names:
+            tag_names = tag_names.split(',')
+        else:
+            tag_names = [tag_names]
         
-        # {1: ['Tech'], 3: ['Life']}
+        print(tag_names)
+        tags = Tag.objects.filter(tag_name__in=tag_names).select_related('question')
+        question_ids = [] 
+        questionIdTagsMap={} 
+        
+        for tag in tags:
+            print(tag.tag_name)
+            question_ids.append(tag.question.id)    
+        print(questionIdTagsMap)
+        question_ids = list(set(question_ids))
+        print("qid",question_ids)
+        
+        for each_id in question_ids:
+            tags = Tag.objects.filter(question_id=each_id).values_list('tag_name', flat=True)
+            tag_list = list(tags)
+            print('taglist:',tag_list)
+            questionIdTagsMap[each_id] = tag_list
+        print(questionIdTagsMap)
+        questions = Question.objects.filter(id__in=question_ids)
+        print(questions)
 
-        qtag=questionIdTagsMap.get(question.id)
-        print('qtag',qtag)
+        data = []
+        print(questionIdTagsMap)
+        
+        for question in questions:
+            print('ID:',question.id)
+            total_votes = Question.objects.filter(id=question.id).aggregate(Sum('choice__votes'))['choice__votes__sum']
+            qtag=questionIdTagsMap.get(question.id)
+            print('qtag',qtag)
+            data.append({
+
+                'question_text': question.question_text,
+                'tag_name': qtag,
+                'total_votes':total_votes
+            })
+        print(data)
+        return JsonResponse({'data': data})
+
+    else:
+
+        questions=Question.objects.all()
+        
+        data=[]
+        
+        
+        print(questions)
+        for question in questions:
+            total_votes = Question.objects.filter(id=question.id).aggregate(Sum('choice__votes'))['choice__votes__sum']
+            tags = Tag.objects.filter(question_id=question.id).values_list('tag_name', flat=True)
+            tag_list = list(tags)
+            print('taglist from else:',tag_list)
+            data.append({
+                'question_text':question.question_text,
+                'tag_name':tag_list,
+                'total_votes':total_votes
+            })
+        print(data)
+        return JsonResponse({'data': data})
+
+
+def get_all(request):
+    questions = Question.objects.all().distinct()
+            
+    data = []
+            
+    for question in questions:
+        total_votes = Question.objects.filter(id=question.id).aggregate(Sum('choice__votes'))['choice__votes__sum']
+        tags = Tag.objects.filter(question_id=question.id).values_list('tag_name', flat=True)
+        tag_list = list(tags)
         data.append({
-
             'question_text': question.question_text,
-            'tag_name': qtag
+            'tag_name': tag_list,
+            'total_votes': total_votes
         })
-    print(data)
     return JsonResponse({'data': data})
-
-
