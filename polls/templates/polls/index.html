@@ -21,8 +21,8 @@
         table {
             border-collapse: collapse;
             border: 1px solid black;
-
-            width: 100%;
+            float: left;
+            width: 50%;
             margin-left: 30px;
         }
 
@@ -36,14 +36,6 @@
             border: 1px solid black;
         }
 
-        /* #form {
-            padding-right: 70px;
-            width: fit-content;
-            background-color: rgb(219, 218, 216);
-            margin-left: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        } */
-
 
         #poll-container {
             display: flex;
@@ -51,11 +43,12 @@
         }
 
         #tag-filter-container {
+            float: left;
             border: 1px solid #ccc;
             background-color: rgb(219, 218, 216);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             padding: 10px;
-            display: inline-block;
+            /* display: inline-block; */
             align-items: center;
         }
 
@@ -77,7 +70,7 @@
 
 
 
-        #button {
+        #create-poll-btn {
             color: white;
             background-color: cyan;
             margin-left: 30px;
@@ -86,18 +79,18 @@
             padding: 10px 20px;
             width: 178px;
             height: 40px;
-            border-color: transparent;
-            cursor: pointer;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr;
-            gap: 1px;
-            grid-auto-flow: column;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 5px rgb(82, 200, 255);
+            border-top: 2px solid rgb(18, 140, 255);
+            border-bottom: 2px solid rgb(18, 140, 255);
+            border-left: 2px solid rgb(18, 140, 255);
+            border-right: 2px solid rgb(18, 140, 255);
         }
     </style>
 </head>
 
 <body id="body">
-    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 600px;">
+    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 650px">
 
 
         <header id="header">
@@ -107,9 +100,9 @@
         <div>
             <div id="wrapper">
                 <div id="poll-container">
-                    <button id="button">Create Poll</button>
+                    <button id="create-poll-btn">Create Poll</button>
                 </div>
-                <div id="tag-filter-container" style="margin-left: 30px; width: 160px;height: 200px;">
+                <div id="tag-filter-container" style="margin-left: 30px; width: 160px;height: 420px;">
                     <ul id="tag-list"></ul>
                     <button id="filter-btn">Filter</button>
                 </div>
@@ -129,6 +122,7 @@
         </div>
     </div>
     <script>
+
         $(document).ready(function () {
 
             function updateQuestionList(tag_names) {
@@ -144,8 +138,9 @@
                         $('#question-table-body').empty();
                         for (var i = 0; i < questions.length; i++) {
                             var question = questions[i];
-                            $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td>' + question.question_text + '</td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
+                            $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td><a href="/polls/' + question.id + '">' + question.question_text + '</a></td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
                         }
+
                     },
                     error: function (xhr, status, error) {
                         console.error(error);
@@ -160,12 +155,12 @@
                 dataType: 'json',
                 success: function (response) {
                     var tags = response.tags;
-                    var uniqueTags = new Set();  // Create a Set to store unique tags
+                    var uniqueTags = new Set();
                     for (var i = 0; i < tags.length; i++) {
                         var tag = tags[i];
-                        uniqueTags.add(tag.tag_name);  // Add tag to the Set
+                        uniqueTags.add(tag.tag_name);
                     }
-                    // Loop through the unique tags and display them
+
                     uniqueTags.forEach(function (tag) {
                         $('#tag-list').append('<li><input type="checkbox" id="tag-' + tag + '" value="' + tag + '">' + tag + '</li>');
                     });
@@ -178,11 +173,12 @@
             $('#filter-btn').click(function () {
                 var tag_names = [];
                 console.log(tag_names)
+
                 $('input[type="checkbox"]:checked').each(function () {
                     tag_names.push($(this).val());
                 });
-                console.log(tag_names)
                 updateQuestionList(tag_names);
+                console.log(tag_names)
             });
 
 
@@ -197,13 +193,19 @@
                 $('#question-table-body').empty();
                 for (var i = 0; i < questions.length; i++) {
                     var question = questions[i];
-                    $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td>' + question.question_text + '</td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
+                    $('#question-table-body').append('<tr><td>' + (i + 1) + '</td><td><a href="/polls/' + question.id + '">' + question.question_text + '</a></td><td>' + question.total_votes + '</td><td>' + question.tag_name + '</td></tr>');
                 }
             },
             error: function (xhr, status, error) {
                 console.error(error);
             }
+
         });
+        $('#create-poll-btn').click(function () {
+            window.location.href = 'create/';
+        });
+
+
     </script>
 </body>
 

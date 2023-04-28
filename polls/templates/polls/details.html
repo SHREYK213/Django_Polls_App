@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Details page</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+    <style>
+        #header {
+            background-color: rgb(219, 218, 216);
+            padding: 20px;
+            width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: medium;
+        }
+
+        #body {
+            font-size: 15px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        table {
+            display: inline;
+            border-collapse: collapse;
+            border: 1px solid black;
+
+            margin-left: 55px;
+            margin-top: 30px;
+            align-content: left;
+        }
+
+
+        th {
+            border: 1px solid black;
+            background-color: #808080;
+            width: 150px;
+        }
+
+        td {
+            border: 1px solid black;
+        }
+
+        #chart-container {
+            width: 200px;
+            /* margin-bottom: 600px; */
+            float: right;
+            margin-right: 480px;
+
+        }
+
+        #total-votes {
+            margin-top: 120px;
+            margin-left: 700px;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 650px">
+        <header id="header">
+            <h2 style="margin-left: 40px;">FlyWeight Polls</h2>
+        </header>
+
+        <h1 style="margin-left: 55px;" id="question-text"></h1>
+
+        <button style="margin-left: 55px;padding: 10px;font-size: 10px;" id="vote-btn">Vote on this
+            poll</button><br><br>
+
+
+        <table id="choice-table">
+            <thead style="text-align: left;">
+                <tr>
+                    <th>Number</th>
+                    <th>Options</th>
+                    <th>Votes</th>
+                </tr>
+            </thead>
+            <tbody id="choice-table-body">
+            </tbody>
+        </table>
+
+        <div id="chart-container"></div>
+
+
+        <div style="margin-left: 55px;margin-top: 25px;">
+            <p id="tag-list"></p>
+        </div>
+
+        <p id="total-votes"></p>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            var url = window.location.href;
+            var pathArray = url.split('/');
+            var pk = parseInt(pathArray[4]);
+            console.log('pk:', pk);
+
+            $.ajax({
+                url: '',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+
+                    var question = response.question;
+                    var choices = response.choices;
+                    var tags = response.tags;
+                    console.log(response);
+
+                    $('#question-text').text(question);
+
+
+                    for (var i = 0; i < choices.length; i++) {
+                        var choice = choices[i];
+
+                        $('#choice-table-body').append('<tr><td>' + (i + 1) + '</td><td>' + choice.choice_text + '</td><td>' + choice.votes + '</td></tr>');
+                        console.log(choice.choice_text);
+                        console.log(choice.votes);
+
+                    }
+
+                    var tagNames = [];
+                    for (var i = 0; i < tags.length; i++) {
+                        var tag = tags[i];
+                        tagNames.push(tag);
+                    }
+                    $('#tag-list').text('Tags: ' + tagNames.join(', '));
+
+
+                    google.charts.load('current', { 'packages': ['corechart'] });
+                    google.charts.setOnLoadCallback(drawChart);
+
+                    function drawChart() {
+                        var data = new google.visualization.DataTable();
+                        data.addColumn('string', 'Choice');
+                        data.addColumn('number', 'Votes');
+
+                        $('#choice-table-body tr').each(function (index, element) {
+                            var choice = $(element).find('td:nth-child(2)').text();
+                            var votes = parseInt($(element).find('td:nth-child(3)').text());
+                            data.addRow([choice, votes]);
+                        });
+
+                        var options = {
+                            // colors: ['#ADD8E6'],
+                            // 'title': 'Poll Results',
+                            'width': 650,
+                            'height': 400,
+                            'pieSliceText': 'label',
+                            pieSliceTextStyle: {
+                                bold: true
+                            },
+                            'sliceVisibilityThreshold': 0,
+                            'tooltip': { 'trigger': 'none' },
+                            // 'legend': 'none',
+                            'pieSliceBorderColor': 'black',
+                        };
+
+
+                        var chart = new google.visualization.PieChart(document.getElementById('chart-container'));
+                        chart.draw(data, options);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+            $(document).ready(function () {
+                var url = window.location.href;
+                var pathArray = url.split('/');
+                var pk = parseInt(pathArray[4]);
+
+                $.ajax({
+                    url: url + 'alldata',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        var questions = response.data;
+                        console.log(questions)
+                        $('#total-votes').empty();
+                        for (var i = 0; i < questions.length; i++) {
+                            var question = questions[i];
+                            $('#total-votes').append('Total Votes:' + question.total_votes);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+            $('#vote-btn').click(function () {
+                window.location.href = '/polls/' + pk + '/results';
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>

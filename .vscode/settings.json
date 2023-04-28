@@ -1,3 +1,7 @@
 {
-    "window.autoDetectColorScheme": false
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#37127B",
+        "titleBar.activeBackground": "#4D19AC",
+        "titleBar.activeForeground": "#FBFAFE"
+    }
 }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Create</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        #header {
+            background-color: rgb(219, 218, 216);
+            padding: 20px;
+            width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: medium;
+        }
+
+        #body {
+            font-size: 15px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        #form-container {
+            float: left;
+            border: 1px solid #ccc;
+            background-color: rgb(219, 218, 216);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            /* display: inline-block; */
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 600px;">
+
+
+        <header id="header">
+            <h2 style="margin-left: 40px;">FlyWeight Polls</h2>
+        </header>
+        <form id="form-container" style="margin-top: 30px;margin-left: 50px; width: 300px;height: 350px;">
+            <label for="question">Question</label><br><br>
+            <input type="text" id="question" name="question" placeholder="Type your poll question here"><br><br>
+            <div id="options">
+                <div>
+                    <label for="options">Answer Options</label><br><br>
+
+                    <input id="options" type="text" class="option" placeholder="Option 1"><br>
+
+                </div>
+            </div>
+            <br>
+
+            <button type="button" onclick="addOption()">Add Option</button><br><br>
+
+            <label for="tags">Comma Seperated Tags</label><br>
+            <input type="text" id="tags" name="tags" placeholder="tag1,tag2,tag3"><br><br>
+
+            <button id="submit" type="submit">Create Poll</button>
+            <button style="margin-left: 55px;padding: 10px;font-size: 10px;" id="vote-btn">Vote</button>
+
+        </form>
+    </div>
+
+
+    <script>
+
+        function addOption() {
+            var optionsDiv = document.getElementById("options");
+            var optionDiv = document.createElement("div");
+            optionDiv.innerHTML = '<input type="text" class="option" placeholder="Option ' + (optionsDiv.childElementCount + 1) + '">'
+
+            optionsDiv.appendChild(optionDiv);
+        }
+        $(document).ready(function () {
+
+            // $("#add-option-btn").click(function () {
+            //     var optionCount = $(".option").length + 1;
+            //     var newOptionDiv = $("<div>").html(
+            //         '<input type="text" class="option" placeholder="Option ' + optionCount + '">'
+            //     );
+            //     $("#options").append(newOptionDiv);
+            // });
+
+            // $("#submit").submit(function (event) {
+            //     event.preventDefault();
+            //     var questionText = $("#question").val();
+            //     var choiceText = $(".option")
+            //         .map(function () { return $(this).val(); })
+            //         .get();
+            //     var tags = $("#tags").val().split(",");
+            //     var data = {
+            //         "question_text": questionText,
+            //         "choice_text": choiceText,
+            //         "tags": tags
+            //     };
+            //     console.log('data', data)
+
+            //     $.ajax({
+            //         type: "POST",
+            //         url: "/polls/create/",
+            //         data: JSON.stringify(data),
+            //         contentType: "application/json",
+            //         success: function (response) {
+            //             console.log(response)
+            //         },
+            //         error: function (error) {
+            //             console.log(error);
+            //         }
+            //     });
+            // });
+            // $('#vote-btn').click(function () {
+            //     var questionText = $("#question").val();
+            //     var choiceText = $(".option")
+            //         .map(function () { return $(this).val(); })
+            //         .get();
+            //     var tags = $("#tags").val().split(",");
+            //     var data = {
+            //         "question_text": questionText,
+            //         "choice_text": choiceText,
+            //         "tags": tags
+            //     };
+            //     console.log('data', data)
+            //     console.log()
+            // });
+        });
+    </script>
+
+
+
+
+
+</body>
+
+</html>

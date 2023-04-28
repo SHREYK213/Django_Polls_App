@@ -1,10 +1,8 @@
 PUT
 
-http://localhost:8000/polls/2/update
+http://localhost:8000/polls/3/vote/
 
 
 {
-"question_text": "Which is better phone",
-"choice_text": ["android","ios"],
-"tags":["phone","tech"],
+   "choice": "Write"
 }

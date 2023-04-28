@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect,JsonResponse,HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse
 from django.views import generic
@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.core import serializers
 from django.db.models import Sum
 import json
+from django.views import View
 from django.db.models import Count
 
 
@@ -20,48 +21,46 @@ class IndexView(generic.ListView):
 
 
 
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = "polls/detail.html"
+# class DetailView(generic.DetailView):
+#     model = Question
+#     template_name = "polls/details.html"
+    
+    
 
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = "polls/results.html"
+# class ResultsView(generic.DetailView):
+#     model = Question
+#     template_name = "polls/results.html"
 
 
-def vote(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST["choice"])
-    except (KeyError, Choice.DoesNotExist):
-        return render(
-            request,
-            "polls/detail.html",
-            {
-                "question": question,
-                "error_message": "You didn't select a choice.",
-            },
-        )
-    else:
-        selected_choice.votes += 1
-        selected_choice.save()
-        return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+# def vote(request, pk):
+#     question = get_object_or_404(Question, pk=pk)
+#     print(question)
+#     try:
+#         selected_choice = question.choice_set.get(pk=request.POST["choice"])
+#     except (KeyError, Choice.DoesNotExist):
+#         return render(
+#             request,
+#             "polls/detail.html",
+#             {
+#                 "question": question,
+#                 "error_message": "You didn't select a choice.",
+#             },
+#         )
+#     else:
+#         selected_choice.votes += 1
+#         selected_choice.save()
+#         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
 
 @csrf_exempt 
 def create_poll(request):
     try:
         if request.method == 'POST':
             jbody = json.loads(request.body)
+            print('after jbodu',jbody)
             question_text = jbody["question_text"]
             choices = jbody["choice_text"]
             tags = jbody["tags"]
 
-            # question_text = request.POST.get('question_text')
-            # choices = request.POST.getlist('choice_text')
-            # tags = request.POST.getlist('tags')
-            print(question_text)
-            print(choices)
-            print(tags)
             if question_text and choices:
                 question = Question(question_text=question_text, pub_date=timezone.now())
                 question.save()
@@ -74,10 +73,17 @@ def create_poll(request):
                         tags = Tag(question=question,tag_name=tag_name)                        
                         tags.save()
 
-                return HttpResponseRedirect(reverse('polls:detail', args=(question.id,)))
-        return render(request, 'polls/create.html')
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'error': 'Missing question or choices'}, status=400)
+            
+        if request.method == 'GET': 
+            return render(request, 'polls/create.html')
     except Exception as e:
         print(e)
+        return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
 
 @csrf_exempt 
 def edit_poll(request, question_id):
@@ -179,7 +185,9 @@ def get_questions(request):
 
                 'question_text': question.question_text,
                 'tag_name': qtag,
-                'total_votes':total_votes
+                'total_votes':total_votes,
+                'id':question.id
+
             })
         print(data)
         return JsonResponse({'data': data})
@@ -200,7 +208,8 @@ def get_questions(request):
             data.append({
                 'question_text':question.question_text,
                 'tag_name':tag_list,
-                'total_votes':total_votes
+                'total_votes':total_votes,
+                'id':question.id
             })
         print(data)
         return JsonResponse({'data': data})
@@ -218,6 +227,178 @@ def get_all(request):
         data.append({
             'question_text': question.question_text,
             'tag_name': tag_list,
-            'total_votes': total_votes
+            'total_votes': total_votes,
+            'id':question.id
         })
+    print('alldata:',data)
     return JsonResponse({'data': data})
+
+
+# def get_allwpk(request,pk):
+#     questions = Question.objects.all().distinct()
+            
+#     data = []
+            
+#     for question in questions:
+#         total_votes = Question.objects.filter(pk=question.id).aggregate(Sum('choice__votes'))['choice__votes__sum']
+#         data.append({
+#             'question_text': question.question_text,
+#             'total_votes': total_votes,
+#             'pk':question.id
+#         })
+#     print('alldatawpk:',data)
+#     return JsonResponse({'data': data})
+
+
+def get_allwpk(request, pk):
+    question = Question.objects.filter(pk=pk).first()
+    if not question:
+        return JsonResponse({'error': 'Question not found'}, status=404)
+    
+    total_votes = question.choice_set.aggregate(Sum('votes'))['votes__sum'] or 0
+    data = [{
+        'question_text': question.question_text,
+        'total_votes': total_votes,
+        'pk': question.pk,
+    }]
+    
+    return JsonResponse({'data': data})
+
+
+
+# class DetailView(View):
+#     def get(self, request, pk):
+#         question = get_object_or_404(Question, pk=pk)
+#         choices = question.choice_set.all()
+#         tags = question.tag_set.all().values_list('tag_name', flat=True)
+        
+#         data = {
+#             'question': question.question_text,
+#             'choices': list(choices.values()),
+#             'tags': list(tags),
+#         }
+#         print('this is from the details dict',data)
+        
+#         return JsonResponse(data)
+
+
+
+class DetailView(View):
+    def get(self, request, pk):
+        question = get_object_or_404(Question, pk=pk)
+        choices = question.choice_set.all()
+        tags = question.tag_set.all().values_list('tag_name', flat=True)
+        
+        data = {
+            'question': question.question_text,
+            'choices': list(choices.values()),
+            'tags': list(tags),
+        }
+        
+        if 'application/json' in request.META['HTTP_ACCEPT']:
+            return JsonResponse(data)
+        else:
+            return render(request, 'polls/details.html', {'data': data})
+
+# @csrf_exempt 
+# def vote(request, pk):
+#     question = get_object_or_404(Question, pk=pk)
+#     choices = question.choice_set.all()
+#     print(question)
+#     print(choices)
+
+#     if request.method == 'PUT':
+#         # choice_id=
+#         incrementOption = get_object_or_404(Choice, pk=selected_choice_pk, question=question)
+#         print(incrementOption)
+#         incrementOption.votes += 1
+#         incrementOption.save()
+
+
+#         data = {
+#             'success': True,
+#             'message': 'Vote added successfully.',
+#             'choice': {
+#                 'id': incrementOption.pk,
+#                 'text': incrementOption.choice_text,
+#                 'votes': incrementOption.votes,
+#                 'question': {
+#                     'id': question.pk,
+#                     'text': question.question_text,
+#                     'pub_date': question.pub_date.isoformat(),
+#                 },
+#             },
+#         }
+
+#         return JsonResponse(data)
+
+#     return render(request, 'results.html', {'question': question, 'choices': choices})
+
+
+
+
+# @csrf_exempt 
+# def vote(request, pk):
+#     question = get_object_or_404(Question, pk=pk)
+#     choices = question.choice_set.all()
+#     data = {
+#         'question': question.question_text,
+#         'choices': []
+#     }
+#     for choice in choices:
+#         choice_data = {
+#             'choice': choice.choice_text,
+#             'votes': choice.votes
+#         }
+#         data['choices'].append(choice_data)
+#         print('choice data',choice_data)
+#     if request.method == 'PUT':
+#         choice_id = request.PUT.get('choice')
+#         if choice_id:
+#             selected_choice = question.choice_set.get(pk=choice_id)
+#             selected_choice.votes += 1
+#             selected_choice.save()
+#             data['choices'] = [
+#                 {'choice': choice.choice_text, 'votes': choice.votes} 
+#                 for choice in choices
+#             ]
+#             print('selected choice',data)
+#     return JsonResponse(data)
+
+
+def results(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    context = {'question': question}
+    return render(request, 'polls/vote.html', context)
+
+
+@csrf_exempt
+def vote(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    choices = question.choice_set.all()
+    data = {
+        'question': question.question_text,
+        'choices': []
+    }
+    for choice in choices:
+        choice_data = {
+            'choice': choice.choice_text,
+            'votes': choice.votes
+        }
+        data['choices'].append(choice_data)
+        print('choice data', choice_data)
+    if request.method in ['PUT', 'POST']:
+        request_data = json.loads(request.body.decode('utf-8'))
+        choice_text = request_data.get('choice')
+        if choice_text:
+            selected_choice = question.choice_set.filter(choice_text=choice_text).first()
+            if selected_choice:
+                selected_choice.votes += 1
+                selected_choice.save()
+                data['choices'] = [
+                    {'choice': choice.choice_text, 'votes': choice.votes} 
+                    for choice in choices
+                ]
+                print('from fe',selected_choice)
+                print('selected choice', data)
+    return JsonResponse(data)

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Details page</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #header {
+            background-color: rgb(219, 218, 216);
+            padding: 20px;
+            width: 1000px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: medium;
+        }
+
+        #body {
+            font-size: 15px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid black;
+            width: 40%;
+            margin-left: 55px;
+            margin-top: 30px;
+            align-content: left;
+        }
+
+
+        th {
+            border: 1px solid black;
+            background-color: #808080;
+
+        }
+
+        td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <div style="border:1px solid black ; box-sizing: border-box;width: 1200px;height: 600px;">
+        <header id="header">
+            <h2 style="margin-left: 40px;">FlyWeight Polls</h2>
+        </header>
+
+        <h1 style="margin-left: 55px;" id="question-text"></h1>
+
+        <div id="choices-container" style="margin-left: 55px;">
+
+        </div>
+
+        <button style="margin-left: 55px;padding: 10px;font-size: 10px;" id="vote-btn">Vote</button>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            var url = window.location.href;
+            var segments = url.split('/');
+            var pk = parseInt(segments[4]);
+            console.log('pk:', pk);
+            segments.splice(segments.length - 2, 1);
+            var newUrl = segments.join('/') + 'vote/';
+
+            $.ajax({
+
+                url: newUrl,
+
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+
+                    var question = response.question;
+                    var choices = response.choices;
+                    console.log('question:', question);
+                    console.log('choices:', choices)
+
+                    $('#question-text').text(question);
+
+                    for (var i = 0; i < choices.length; i++) {
+                        var choice = choices[i];
+                        var $radioButton = $('<input type="radio" name="choice" value="' + choice.choice + '">');
+                        var $label = $('<label for="' + choice.choice + '">' + choice.choice + '</label>');
+                        $('#choices-container').append($radioButton).append($label).append('<br>');
+                    }
+
+                    console.log('choice text outside for', choice.choice_text);
+                    console.log('choice votes outside for', choice.votes);
+                    console.log('choice outside for', choice)
+                    console.log('choices outside for', choices)
+
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+            $('#vote-btn').click(function () {
+                var selected_choice = $('input[name=choice]:checked', '#choices-container').val();
+                console.log('selected choice:', selected_choice);
+                $.ajax({
+                    url: newUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: JSON.stringify({ 'choice': selected_choice }),
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        console.log('vote response:', response);
+
+                        window.location.href = '/polls/';
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

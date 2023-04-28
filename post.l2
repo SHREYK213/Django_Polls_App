@@ -1,11 +1,15 @@
 POST
 
 
-http://localhost:8000/polls/polls/
+http://localhost:8000/polls/create/
+
 
 {
-"question_text": "Hobby",
-"choice_text": ["read","gaming"],
-"tags":["helth","life"],
+"question_text": "Which is the most loved tourist place in Kasaragod district ",
+"choice_text": ["Bekal Fort","Ranipuram","Ananthapura","lake temple ","Kottancheri Hills"],
+"tags":["tourist place","location"],
 }
+
+
+
 
